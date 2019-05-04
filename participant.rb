@@ -12,14 +12,16 @@ class Participant
   def miss_move; end
 
   def take_card(card_deck)
-    @cards << card_deck.take_card
-    @score = calculate_score
+    if @cards.size == 2
+      @cards << card_deck.take_card
+      calculate_score
+    end
   end
 
   def open_cards
     @cards
   end
-  
+
   def calculate_score
     aces = []
     score = 0
@@ -32,14 +34,14 @@ class Participant
     end
     # отдельно считаем очки от тузов, если тузы есть
     score += ace_score(aces) unless aces.empty?
-    score
+    @score = score
   end
 
   protected
 
   def ace_score(aces)
+    ace = aces[0]
     if aces.size == 1
-      ace = aces[0]
       # если туз с номиналом 11 не приводит к проигрышу, считаем номинал 11
       @score + ace[:value1] <= 21 ? ace[:value_big] : ace[:value_small]
     elsif aces.size >= 2
