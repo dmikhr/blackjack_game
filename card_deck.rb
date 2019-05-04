@@ -2,10 +2,7 @@ class CardDeck
   attr_reader :card_deck
   def initialize
     @card_deck = []
-    # масть карты
-    #@suits = [:clubs, :diamonds, :hearts, :spades]
-    #@names = [:ace, :jack, :queen, :king]
-    @suits = { clubs: "\u2663" , diamonds: "\u2666", hearts: "\u2665", spades: "\u2660" }
+    @suits = { clubs: "\u2663", diamonds: "\u2666", hearts: "\u2665", spades: "\u2660" }
     @names = { ace: 'Т', jack: 'В', queen: 'Д', king: 'К' }
     @card_values = (2..10)
     generate_cards_nominal
@@ -24,7 +21,9 @@ class CardDeck
     @suits.each do |suit, symbol|
       @card_values.each do |card_value|
         #puts "Card value: #{utf_symbol}"
-        @card_deck << { suit: suit, name: :none, pic: card_value.to_s + symbol, value: card_value }
+        @card_deck << {
+          suit: suit, name: :none, pic: card_value.to_s + symbol, value: card_value
+        }
       end
     end
   end

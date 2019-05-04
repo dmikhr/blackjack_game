@@ -2,6 +2,8 @@
 # класс управляющий игрой
 
 class RubyJack
+  include Strategies
+
   attr_reader :commands, :player, :dealer, :card_deck, :game_bank, :game_status
   STAKE = 10
 
@@ -82,13 +84,8 @@ class RubyJack
   end
 
   def dealer_play
-    if @dealer.score < 17
-      puts "Дилер берет карту"
-      @dealer.take_card(@card_deck)
-    else
-      puts "Дилер пропускает ход"
-      @dealer.miss_move if @dealer.consecutive_missed_moves <= 1
-    end
+    #default_strategy
+    random_strategy
   end
 
   def game_results

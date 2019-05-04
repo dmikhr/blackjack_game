@@ -1,0 +1,12 @@
+Style/AsciiComments:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/LineLength:
+  Max: 110
+
+AllCops:
+  Exclude:
+    - 'tests.rb'
