@@ -3,8 +3,8 @@ class CardDeck
   def initialize
     @card_deck = []
     # масть карты
-    @suits = %w[clubs diamonds hearts spades]
-    @names = %w[ace jack queen king]
+    @suits = [:clubs, :diamonds, :hearts, :spades]
+    @names = [:ace, :jack, :queen, :king]
     @card_values = (2..10)
     generate_cards_nominal
     generate_cards_name
@@ -23,7 +23,7 @@ class CardDeck
   def generate_cards_nominal
     @suits.each do |suit|
       @card_values.each do |card_value|
-        @card_deck << { suit: suit, name: 'none', value: card_value }
+        @card_deck << { suit: suit, name: :numerical, value: card_value }
       end
     end
   end
@@ -31,8 +31,8 @@ class CardDeck
   def generate_cards_name
     @suits.each do |suit|
       @names.each do |name|
-        if @name == 'ace'
-          @card_deck << { suit: suit, name: name, value1: 11, value2: 1 }
+        if @name == :ace
+          @card_deck << { suit: suit, name: :ace, value_big: 11, value_small: 1 }
         else
           @card_deck << { suit: suit, name: name, value: 10 }
         end
