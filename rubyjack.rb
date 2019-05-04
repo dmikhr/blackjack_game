@@ -2,7 +2,8 @@
 # класс управляющий игрой
 
 class RubyJack
-  attr_reader :commands, :player, :dealer, :card_deck, :game_bank
+  attr_reader :commands, :player, :dealer, :card_deck, :game_bank, :game_status
+  STAKE = 10
 
   def initialize(player_name)
     @commands = [
@@ -10,26 +11,74 @@ class RubyJack
       ['Добавить карту', method(:player_take_card)],
       ['Открыть карты', method(:open_cards)],
     ]
-    # перемешанная колода карт
-    @card_deck = CardDeck.new
-    # создаем объекты игрока и дилера
-    @player = Player.new(player_name)
-    @dealer = Dealer.new
-    # раздача карт
-    give_initial_cards(@player)
-    give_initial_cards(@dealer)
-    # ставка в банк игры
-    @player.bank -= 10
-    @dealer.bank -= 10
-    @game_bank = 20
-    #p @player
-    #p @dealer
-    @game_status = :playing
+    @player_name = player_name
+    new_game
   end
 
   def show_options
     puts 'Доступные команды:'
     @commands.each.with_index(1) { |cmd, idx| puts "#{idx} - #{cmd[0]}" }
+  end
+
+  def new_game
+    @game_status = :playing
+    # перемешанная колода карт
+    @card_deck = CardDeck.new
+    # создаем объекты игрока и дилера
+    @player = Player.new(@player_name)
+    @dealer = Dealer.new
+    # раздача карт
+    give_initial_cards(@player)
+    give_initial_cards(@dealer)
+    if player_has_money? || dealer_has_money?
+      make_stake
+    else
+      game_results
+    end
+  end
+
+  def make_stake
+    @player.bank -= STAKE
+    @dealer.bank -= STAKE
+    @game_bank ||= 0
+    @game_bank += 2 * STAKE
+  end
+
+  def game_over?
+    @game_status == :finished || both_have_3_cards? || @dealer.consecutive_missed_moves == 2
+  end
+
+  def player_take_card
+    @player.consecutive_missed_moves = 0
+    puts 'Игрок взял карту'
+    if @player.take_card(card_deck)
+      puts "#{@player.name} взял карту"
+      #p @player.cards
+    else
+      puts "#{@player.name}: уже имеет 3 карты, больше взять нельзя"
+    end
+    dealer_play
+  end
+
+  def player_miss_move
+    # игрок пропускает ход, ходит дилер
+    if @player.consecutive_missed_moves <= 1
+      puts 'Игрок пропускает ход'
+      @player.miss_move
+      # пропускаем ход и передаем ход дилеру
+      dealer_play
+    else
+      # нужно выбрать другое действие - взять карту или открыть карты
+      # в этом случае пользователь не сделал ход, т.е. дилеру ход не передаем
+      puts 'Можно пропустить ход только 1 раз'
+    end
+  end
+
+  def open_cards
+    puts 'Открываем карты'
+    @player.open_cards
+    @dealer.open_cards
+    game_results
   end
 
   def dealer_play
@@ -38,36 +87,8 @@ class RubyJack
       @dealer.take_card(@card_deck)
     else
       puts "Дилер пропускает ход"
-      @dealer.miss_move
+      @dealer.miss_move if @dealer.consecutive_missed_moves <= 1
     end
-  end
-
-  def game_over?
-    @game_status == :finished
-  end
-
-  def game_over
-    @game_status = :finished
-  end
-
-  def both_have_3_cards
-    if @player.cards.size == 3 && @dealer.cards.size == 3
-      puts 'Оба игрока имеют по 3 карты - игра окончена'
-      game_results
-    end
-  end
-
-  def player_miss_move
-    # игрок пропускает ход, ходит дилер
-    puts 'Игрок пропускает ход'
-    dealer_play
-  end
-
-  def open_cards
-    puts 'Открываем карты'
-    @player.open_cards
-    @dealer.open_cards
-    game_results
   end
 
   def game_results
@@ -78,43 +99,62 @@ class RubyJack
     find_winner
   end
 
+  private
+
   def find_winner
     case
-    when (@player.score > @dealer.score && @player.score <= 21) || (@dealer.score > @player.score && @dealer.score > 21)
+    when player_wins?
       player_wins
-    when (@dealer.score > @player.score && @dealer.score <= 21) || (@player.score > @dealer.score && @player.score > 21)
+    when dealer_wins?
       dealer_wins
-    when @dealer.score == @player.score && @dealer.score <= 21 && @player.score <= 21
+    when draw?
       draw
+    when both_lose?
+      both_lose
+    when !player_has_money
+      dealer_wins
+    when !dealer_has_money
+      player_wins
     else
       puts 'Неучтенная ситуация'
     end
   end
 
-  def participant_take_card(person)
-    person == :player ? participant = @player : participant = @dealer
-    if participant.take_card(card_deck)
-      puts "#{participant.name} взял карту"
-      p participant.cards
-    else
-      puts "#{participant.name}: уже имеет 3 карты, больше взять нельзя"
-    end
+  def player_wins?
+    (@player.score > @dealer.score && @player.score <= 21) || (@dealer.score > @player.score && @dealer.score > 21)
   end
 
-  def player_take_card
-    puts 'Игрок взял карту'
-    if @player.take_card(card_deck)
-      puts "#{@player.name} взял карту"
-      #p @player.cards
-    else
-      puts "#{@player.name}: уже имеет 3 карты, больше взять нельзя"
-    end
+  def dealer_wins?
+    (@dealer.score > @player.score && @dealer.score <= 21) || (@player.score > @dealer.score && @player.score > 21)
   end
 
-  private
+  def draw?
+    @dealer.score == @player.score && @dealer.score <= 21 && @player.score <= 21
+  end
+
+  def both_lose?
+    @dealer.score > 21 && @player.score > 21
+  end
+
+  def game_over
+    @game_status = :finished
+  end
+
+  def both_have_3_cards?
+    @player.cards.size == 3 && @dealer.cards.size == 3
+  end
 
   def give_initial_cards(participant)
     2.times { participant.cards << @card_deck.take_card }
+    participant.calculate_score
+  end
+
+  def player_has_money?
+    @player.bank - STAKE >= 0
+  end
+
+  def dealer_has_money?
+    @dealer.bank - STAKE >= 0
   end
 
   # ничья
@@ -123,17 +163,28 @@ class RubyJack
     @player.bank += 10
     @dealer.bank += 10
     @game_bank = 0
+    # возвращаем символом статус победы
+    # используется в юнит тестах
+    :draw
   end
 
   def dealer_wins
     puts 'Выграл дилер'
     @dealer.bank += @game_bank
     @game_bank = 0
+    :dealer_wins
   end
 
   def player_wins
     puts "Выиграл игрок #{player.name}"
     @player.bank += @game_bank
     @game_bank = 0
+    :player_wins
+  end
+
+  def both_lose
+    # оба набрали больше 21 - деньги остаются в банке
+    puts "Выигравших нет"
+    :both_lose
   end
 end
