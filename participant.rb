@@ -1,5 +1,5 @@
 class Participant
-  attr_reader :score
+  attr_reader :score, :name
   attr_accessor :cards, :bank
 
   def initialize(name = '')
@@ -9,13 +9,17 @@ class Participant
     @name = name
   end
 
-  def miss; end
+  def miss_move; end
 
   def take_card(card_deck)
     @cards << card_deck.take_card
     @score = calculate_score
   end
 
+  def open_cards
+    @cards
+  end
+  
   def calculate_score
     aces = []
     score = 0
