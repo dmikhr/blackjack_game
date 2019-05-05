@@ -1,5 +1,7 @@
 # class game
 # класс управляющий игрой
+# идея названия класса взята из обсуждения
+# http://connect.thinknetica.com/t/proekt-igra-blek-dzhek/1539/32
 
 class RubyJack
   include Strategies
@@ -11,7 +13,7 @@ class RubyJack
     @commands = [
       ['Пропустить ход', method(:player_miss_move)],
       ['Добавить карту', method(:player_take_card)],
-      ['Открыть карты', method(:open_cards)],
+      ['Открыть карты', method(:open_cards)]
     ]
     @player_name = player_name
     new_game
@@ -32,7 +34,7 @@ class RubyJack
     # раздача карт
     give_initial_cards(@player)
     give_initial_cards(@dealer)
-    if player_has_money? || dealer_has_money?
+    if player_has_money? && dealer_has_money?
       make_stake
     else
       game_results
@@ -47,15 +49,14 @@ class RubyJack
   end
 
   def game_over?
-    @game_status == :finished || both_have_3_cards? || @dealer.consecutive_missed_moves == 2
+    @game_status == :finished || both_have_3_cards?
   end
 
   def player_take_card
     @player.consecutive_missed_moves = 0
-    puts 'Игрок взял карту'
     if @player.take_card(card_deck)
       puts "#{@player.name} взял карту"
-      #p @player.cards
+      # p @player.cards
     else
       puts "#{@player.name}: уже имеет 3 карты, больше взять нельзя"
     end
@@ -64,7 +65,7 @@ class RubyJack
 
   def player_miss_move
     # игрок пропускает ход, ходит дилер
-    if @player.consecutive_missed_moves <= 1
+    if @player.consecutive_missed_moves < 1
       puts 'Игрок пропускает ход'
       @player.miss_move
       # пропускаем ход и передаем ход дилеру
@@ -78,51 +79,54 @@ class RubyJack
 
   def open_cards
     puts 'Открываем карты'
-    @player.open_cards
-    @dealer.open_cards
     game_results
   end
 
   def dealer_play
-    #default_strategy
-    random_strategy
+    default_strategy
+    # random_strategy
   end
 
   def game_results
     game_over
     puts 'Игра окончена'
+    show_player_cards
     puts "Очки игрока (#{@player.name}) #{@player.score}"
+    show_dealer_cards
     puts "Очки дилера #{@dealer.score}"
     find_winner
+  end
+
+  def show_player_cards
+    puts "Карты игрока #{@player.name}: #{@player.show_cards}"
   end
 
   private
 
   def find_winner
-    case
-    when player_wins?
+    if player_wins?
       player_wins
-    when dealer_wins?
+    elsif dealer_wins?
       dealer_wins
-    when draw?
+    elsif draw?
       draw
-    when both_lose?
+    elsif both_lose?
       both_lose
-    when !player_has_money
-      dealer_wins
-    when !dealer_has_money
-      player_wins
-    else
-      puts 'Неучтенная ситуация'
     end
   end
 
+  def show_dealer_cards
+    puts "Карты дилера: #{@dealer.show_cards}"
+  end
+
   def player_wins?
-    (@player.score > @dealer.score && @player.score <= 21) || (@dealer.score > @player.score && @dealer.score > 21)
+    (@player.score > @dealer.score && @player.score <= 21) ||
+      (@dealer.score > @player.score && @dealer.score > 21 && @player.score <= 21)
   end
 
   def dealer_wins?
-    (@dealer.score > @player.score && @dealer.score <= 21) || (@player.score > @dealer.score && @player.score > 21)
+    (@dealer.score > @player.score && @dealer.score <= 21) ||
+      (@player.score > @dealer.score && @player.score > 21 && @dealer.score <= 21)
   end
 
   def draw?
@@ -181,7 +185,7 @@ class RubyJack
 
   def both_lose
     # оба набрали больше 21 - деньги остаются в банке
-    puts "Выигравших нет"
+    puts 'Выигравших нет'
     :both_lose
   end
 end

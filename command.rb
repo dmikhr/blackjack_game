@@ -18,9 +18,12 @@ class Command
     puts "\nДобро пожаловать в игру Блэкджек"
     @game.show_options
     loop do
+      @game.show_player_cards
+      # puts "\n"
       puts 'Введите вариант действий (введите "999" для выхода из игры)'
       command = gets.chomp
       break if command == '999'
+
       execute_command(command)
       if @game.game_over?
         @game.game_results
@@ -40,14 +43,14 @@ class Command
     p game_obj.game_status
     puts 'DEBUG: game_over?'
     p game_obj.game_over?
-    #puts 'DEBUG: Card Deck'
-    #p game_obj.card_deck
+    # puts 'DEBUG: Card Deck'
+    # p game_obj.card_deck
   end
 
   def ask_player_name
     puts 'Введите имя'
     @player_name = gets.chomp
-    #@player_name = 'Джек'
+    # @player_name = 'Джек'
   end
 
   def play_again
@@ -75,5 +78,4 @@ class Command
       puts 'Неизвестная команда'
     end
   end
-
 end

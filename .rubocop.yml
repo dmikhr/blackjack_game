@@ -7,6 +7,12 @@ Style/Documentation:
 Metrics/LineLength:
   Max: 110
 
-AllCops:
+Metrics/MethodLength:
+  Max: 20
+
+Metrics/ClassLength:
+  Max: 200
+
+Style/GuardClause:
   Exclude:
-    - 'tests.rb'
+    - 'participant.rb'

@@ -22,8 +22,10 @@ class Participant
     end
   end
 
-  def open_cards
-    @cards
+  def show_cards
+    cards_pics = []
+    @cards.each { |card| cards_pics << card[:pic] }
+    cards_pics.join(' ')
   end
 
   def calculate_score
@@ -56,5 +58,4 @@ class Participant
       ace[:value_big] + (aces.size - 1) + ace[:value_small]
     end
   end
-
 end

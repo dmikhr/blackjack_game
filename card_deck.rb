@@ -20,7 +20,7 @@ class CardDeck
   def generate_cards_nominal
     @suits.each do |suit, symbol|
       @card_values.each do |card_value|
-        #puts "Card value: #{utf_symbol}"
+        # puts "Card value: #{utf_symbol}"
         @card_deck << {
           suit: suit, name: :none, pic: card_value.to_s + symbol, value: card_value
         }
@@ -32,11 +32,11 @@ class CardDeck
   def generate_cards_name
     @suits.each do |suit, symbol|
       @names.each do |name, letter|
-        if name == :ace
-          @card_deck << { suit: suit, name: :ace, pic: letter + symbol, value_big: 11, value_small: 1 }
-        else
-          @card_deck << { suit: suit, name: name, pic: letter + symbol, value: 10 }
-        end
+        @card_deck << if name == :ace
+                        { suit: suit, name: :ace, pic: letter + symbol, value_big: 11, value_small: 1 }
+                      else
+                        { suit: suit, name: name, pic: letter + symbol, value: 10 }
+                      end
       end
     end
   end
