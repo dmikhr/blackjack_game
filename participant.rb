@@ -1,10 +1,11 @@
 class Participant
+  ACE_SMALL_VALUE = 1
+  
   attr_reader :score, :name
-  attr_accessor :cards, :bank, :consecutive_missed_moves
+  attr_accessor :cards, :consecutive_missed_moves
 
   def initialize(name = '')
     @cards = []
-    @bank = 100
     @score = 0
     @name = name
     @consecutive_missed_moves = 0
@@ -24,7 +25,7 @@ class Participant
 
   def show_cards
     cards_pics = []
-    @cards.each { |card| cards_pics << card[:pic] }
+    @cards.each { |card| cards_pics << card.pic }
     cards_pics.join(' ')
   end
 
@@ -32,30 +33,30 @@ class Participant
     aces = []
     score = 0
     @cards.each do |card|
-      if card[:name] == :ace
+      if card.name == :ace
         aces << card
       else
-        score += card[:value]
+        score += card.value
       end
     end
     # отдельно считаем очки от тузов, если тузы есть
-    score += ace_score(aces) unless aces.empty?
+    score += ace_score(aces, score) unless aces.empty?
     @score = score
   end
 
   protected
 
-  def ace_score(aces)
+  def ace_score(aces, score)
     ace = aces[0]
     if aces.size == 1
       # если туз с номиналом 11 не приводит к проигрышу, считаем номинал 11
-      @score + ace[:value_big] <= 21 ? ace[:value_big] : ace[:value_small]
+      score + ace.value <= 21 ? ace.value : ACE_SMALL_VALUE
     elsif aces.size >= 2
       # обобщение на случай N тузов
       # если туза 2 и более: считаем 11+1+..+1
       # 1-ый туз по номиналу 11, оставшиеся по 1
       # на основе обсуждения задания на http://connect.thinknetica.com/t/topic/1539
-      ace[:value_big] + (aces.size - 1) + ace[:value_small]
+      ace.value + (aces.size - 1) * ACE_SMALL_VALUE
     end
   end
 end
