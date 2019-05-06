@@ -6,46 +6,31 @@
 class RubyJack
   include Strategies
 
-  attr_reader :commands, :player, :dealer, :card_deck, :game_bank, :game_status
   STAKE = 10
 
-  def initialize(player_name)
-    @commands = [
-      ['Пропустить ход', method(:player_miss_move)],
-      ['Добавить карту', method(:player_take_card)],
-      ['Открыть карты', method(:open_cards)]
-    ]
-    @player_name = player_name
-    new_game
-  end
+  attr_reader :commands, :player, :dealer, :card_deck, :game_bank, :game_status, :bank
 
-  def show_options
-    puts 'Доступные команды:'
-    @commands.each.with_index(1) { |cmd, idx| puts "#{idx} - #{cmd[0]}" }
+  def initialize(player_name)
+    @player_name = player_name
+    # учет баланса ведется в течении всех серий игр
+    @bank = Bank.new
   end
 
   def new_game
     @game_status = :playing
     # перемешанная колода карт
-    @card_deck = CardDeck.new
+    @card_deck = Deck.new
     # создаем объекты игрока и дилера
     @player = Player.new(@player_name)
     @dealer = Dealer.new
     # раздача карт
     give_initial_cards(@player)
     give_initial_cards(@dealer)
-    if player_has_money? && dealer_has_money?
-      make_stake
+    if @bank.participants_have_money?
+      @bank.make_stake
     else
-      game_results
+      game_over
     end
-  end
-
-  def make_stake
-    @player.bank -= STAKE
-    @dealer.bank -= STAKE
-    @game_bank ||= 0
-    @game_bank += 2 * STAKE
   end
 
   def game_over?
@@ -54,32 +39,16 @@ class RubyJack
 
   def player_take_card
     @player.consecutive_missed_moves = 0
-    if @player.take_card(card_deck)
-      puts "#{@player.name} взял карту"
-      # p @player.cards
-    else
-      puts "#{@player.name}: уже имеет 3 карты, больше взять нельзя"
-    end
-    dealer_play
+    dealer_play if @player.take_card(card_deck)
   end
 
   def player_miss_move
-    # игрок пропускает ход, ходит дилер
+    # если игрок еще не пропускал ход
     if @player.consecutive_missed_moves < 1
-      puts 'Игрок пропускает ход'
       @player.miss_move
       # пропускаем ход и передаем ход дилеру
       dealer_play
-    else
-      # нужно выбрать другое действие - взять карту или открыть карты
-      # в этом случае пользователь не сделал ход, т.е. дилеру ход не передаем
-      puts 'Можно пропустить ход только 1 раз'
     end
-  end
-
-  def open_cards
-    puts 'Открываем карты'
-    game_results
   end
 
   def dealer_play
@@ -87,23 +56,29 @@ class RubyJack
     # random_strategy
   end
 
+  # передаем результаты игры в виде хеша
+  # в интерфейс Command, где происходит вывод данных
   def game_results
-    game_over
-    puts 'Игра окончена'
-    show_player_cards
-    puts "Очки игрока (#{@player.name}) #{@player.score}"
-    show_dealer_cards
-    puts "Очки дилера #{@dealer.score}"
-    find_winner
+    {
+      winner: determine_winner,
+      player_score: @player.score,
+      dealer_score: @dealer.score,
+      dealer_cards: show_dealer_cards,
+      player_cards: show_player_cards,
+      bank: @bank
+    }
   end
 
   def show_player_cards
-    puts "Карты игрока #{@player.name}: #{@player.show_cards}"
+    @player.show_cards
   end
 
-  private
+  # показать вместо карт дилера звездочки
+  def show_dealer_cards_hidden
+    (['*'] * @dealer.cards.size).join(' ')
+  end
 
-  def find_winner
+  def determine_winner
     if player_wins?
       player_wins
     elsif dealer_wins?
@@ -115,8 +90,18 @@ class RubyJack
     end
   end
 
+  def game_over
+    @game_status = :finished
+  end
+
+  # т.к. открытие карт ведет к завершению игры, поведение
+  # метода open_cards идентично game_over
+  alias_method :open_cards, :game_over
+
+  private
+
   def show_dealer_cards
-    puts "Карты дилера: #{@dealer.show_cards}"
+    @dealer.show_cards
   end
 
   def player_wins?
@@ -137,10 +122,6 @@ class RubyJack
     @dealer.score > 21 && @player.score > 21
   end
 
-  def game_over
-    @game_status = :finished
-  end
-
   def both_have_3_cards?
     @player.cards.size == 3 && @dealer.cards.size == 3
   end
@@ -150,42 +131,24 @@ class RubyJack
     participant.calculate_score
   end
 
-  def player_has_money?
-    @player.bank - STAKE >= 0
-  end
-
-  def dealer_has_money?
-    @dealer.bank - STAKE >= 0
-  end
-
   # ничья
   def draw
-    puts 'Ничья'
-    @player.bank += 10
-    @dealer.bank += 10
-    @game_bank = 0
-    # возвращаем символом статус победы
-    # используется в юнит тестах
+    @bank.return_money
     :draw
   end
 
   def dealer_wins
-    puts 'Выграл дилер'
-    @dealer.bank += @game_bank
-    @game_bank = 0
+    @bank.pay_to_dealer
     :dealer_wins
   end
 
   def player_wins
-    puts "Выиграл игрок #{player.name}"
-    @player.bank += @game_bank
-    @game_bank = 0
+    @bank.pay_to_player
     :player_wins
   end
 
   def both_lose
-    # оба набрали больше 21 - деньги остаются в банке
-    puts 'Выигравших нет'
+    @bank.reset_account
     :both_lose
   end
 end
