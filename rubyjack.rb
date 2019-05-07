@@ -6,8 +6,6 @@
 class RubyJack
   include Strategies
 
-  STAKE = 10
-
   attr_reader :commands, :player, :dealer, :card_deck, :game_bank, :game_status, :bank
 
   def initialize(player_name)
