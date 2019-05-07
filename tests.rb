@@ -69,14 +69,14 @@ class BlackJackTest < Test::Unit::TestCase
     game = RubyJack.new('Joe')
     game.new_game
     game.dealer.cards = [
-      Card.new(:clubs, :none, '9♣', 9),
-      Card.new(:diamonds, :none, '8♦', 8),
-      Card.new(:clubs, :none, '4♣', 4)
+      Card.new(:clubs, 9),
+      Card.new(:diamonds, 8),
+      Card.new(:clubs, 4)
     ]
     game.player.cards = [
-      Card.new(:spades, :none, '8♠', 8),
-      Card.new(:hearts, :none, '3♥', 3),
-      Card.new(:spades, :jack, 'В♠', 10)
+      Card.new(:spades, 8),
+      Card.new(:hearts, 3),
+      Card.new(:spades, :queen)
     ]
     game.dealer.calculate_score
     game.player.calculate_score
@@ -89,14 +89,14 @@ class BlackJackTest < Test::Unit::TestCase
     game = RubyJack.new('Joe')
     game.new_game
     game.dealer.cards = [
-      Card.new(:diamonds, :none, '10♦', 10),
-      Card.new(:spades, :none, '4♠', 4),
-      Card.new(:spades, :none, '2♠', 2)
+      Card.new(:diamonds, :queen),
+      Card.new(:spades, 4),
+      Card.new(:spades, 2)
     ]
     game.player.cards = [
-      Card.new(:hearts, :none, '9♥', 9),
-      Card.new(:hearts, :jack, 'В♥', 10),
-      Card.new(:diamonds, :none, '2♦', 2)
+      Card.new(:hearts, 9),
+      Card.new(:hearts, :jack),
+      Card.new(:diamonds, 2)
     ]
     game.dealer.calculate_score
     game.player.calculate_score
@@ -109,14 +109,14 @@ class BlackJackTest < Test::Unit::TestCase
     game = RubyJack.new('Joe')
     game.new_game
     game.dealer.cards = [
-      Card.new(:hearts, :none, '9♥', 9),
-      Card.new(:hearts, :jack, 'В♥', 10),
-      Card.new(:diamonds, :none, '5♦', 1)
+      Card.new(:hearts, 9),
+      Card.new(:hearts, :jack),
+      Card.new(:diamonds, 1)
     ]
     game.player.cards = [
-      Card.new(:diamonds, :none, '10♦', 10),
-      Card.new(:spades, :none, '4♠', 4),
-      Card.new(:diamonds, :none, '2♦', 1)
+      Card.new(:diamonds, :king),
+      Card.new(:spades, 4),
+      Card.new(:diamonds, 1)
     ]
     game.dealer.calculate_score
     game.player.calculate_score
@@ -129,14 +129,14 @@ class BlackJackTest < Test::Unit::TestCase
     game = RubyJack.new('Joe')
     game.new_game
     game.dealer.cards = [
-      Card.new(:hearts, :queen, 'Д♥', 10),
-      Card.new(:diamonds, :none, '7♦', 7),
-      Card.new(:spades, :none, '7♠', 7)
+      Card.new(:hearts, :queen),
+      Card.new(:diamonds, 7),
+      Card.new(:spades, 7)
     ]
     game.player.cards = [
-      Card.new(:clubs, :none, '4♣', 4),
-      Card.new(:diamonds, :none, '10♦', 10),
-      Card.new(:diamonds, :jack, 'В♦', 10)
+      Card.new(:clubs, 4),
+      Card.new(:diamonds, :queen),
+      Card.new(:diamonds, :jack)
     ]
     game.dealer.calculate_score
     game.player.calculate_score
@@ -149,9 +149,9 @@ class BlackJackTest < Test::Unit::TestCase
     game = RubyJack.new('German')
     game.new_game
     game.player.cards = [
-      Card.new(:spades, :none, '3♠', 3),
-      Card.new(:spades, :none, '7♠', 7),
-      Card.new(:spades, :ace, 'Т♠', 11)
+      Card.new(:spades, 3),
+      Card.new(:spades, 7),
+      Card.new(:spades, :ace)
     ]
     game.player.calculate_score
     assert_equal(21, game.player.score)
@@ -161,9 +161,9 @@ class BlackJackTest < Test::Unit::TestCase
     game = RubyJack.new('Joe')
     game.new_game
     game.dealer.cards = [
-      Card.new(:clubs, :none, '9♣', 9),
-      Card.new(:diamonds, :ace, 'Т♦', 11),
-      Card.new(:spades, :none, '7♠', 7)
+      Card.new(:clubs, 9),
+      Card.new(:diamonds, :ace),
+      Card.new(:spades, 7)
     ]
     game.dealer.calculate_score
     assert_equal(17, game.dealer.score)
