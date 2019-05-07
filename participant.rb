@@ -1,6 +1,6 @@
 class Participant
   ACE_SMALL_VALUE = 1
-  
+
   attr_reader :score, :name
   attr_accessor :cards, :consecutive_missed_moves
 
@@ -24,9 +24,7 @@ class Participant
   end
 
   def show_cards
-    cards_pics = []
-    @cards.each { |card| cards_pics << card.pic }
-    cards_pics.join(' ')
+    @cards.map(&:pic).join(' ')
   end
 
   def calculate_score
@@ -49,6 +47,8 @@ class Participant
   def ace_score(aces, score)
     ace = aces[0]
     if aces.size == 1
+      puts '11111'
+      puts score
       # если туз с номиналом 11 не приводит к проигрышу, считаем номинал 11
       score + ace.value <= 21 ? ace.value : ACE_SMALL_VALUE
     elsif aces.size >= 2

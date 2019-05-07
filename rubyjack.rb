@@ -102,14 +102,17 @@ class RubyJack
     @dealer.show_cards
   end
 
+  def winner?(winner, loser)
+    (winner.score > loser.score && winner.score <= 21) ||
+      (loser.score > winner.score && loser.score > 21 && winner.score <= 21)
+  end
+
   def player_wins?
-    (@player.score > @dealer.score && @player.score <= 21) ||
-      (@dealer.score > @player.score && @dealer.score > 21 && @player.score <= 21)
+    winner?(@player, @dealer)
   end
 
   def dealer_wins?
-    (@dealer.score > @player.score && @dealer.score <= 21) ||
-      (@player.score > @dealer.score && @player.score > 21 && @dealer.score <= 21)
+    winner?(@dealer, @player)
   end
 
   def draw?
